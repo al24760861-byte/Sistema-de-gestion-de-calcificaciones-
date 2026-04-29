@@ -4,73 +4,125 @@ import (
 	"fmt"
 )
 
+const (
+	APROBADO   = 6.0
+	ASISTENCIA = 70
+)
+
+type Estudiante struct {
+	Nombre         string
+	Calificaciones [5]float64
+	Asistencia     int
+}
+
 func main() {
-	// Variables
-	var numEstudiantes int
-	fmt.Print("¿Cuántos estudiantes deseas registrar? ")
-	fmt.Scanln(&numEstudiantes)
+	// Declaración con var
+	var estudiantes [10]Estudiante
 
-	// Arrays para nombres y calificaciones
-	nombres := make([]string, numEstudiantes)
-	calificaciones := make([][]float64, numEstudiantes)
-
-	// Ingreso de datos
-	for i := 0; i < numEstudiantes; i++ {
-		fmt.Printf("\nNombre del estudiante %d: ", i+1)
-		fmt.Scanln(&nombres[i])
-
-		var numNotas int
-		fmt.Printf("¿Cuántas calificaciones tiene %s? ", nombres[i])
-		fmt.Scanln(&numNotas)
-
-		calificaciones[i] = make([]float64, numNotas)
-		for j := 0; j < numNotas; j++ {
-			fmt.Printf("Ingresa la calificación %d de %s: ", j+1, nombres[i])
-			fmt.Scanln(&calificaciones[i][j])
-		}
+	// Declaración corta :=
+	nombres := [10]string{
+		"Ana García", "Luis Pérez", "María López", "Carlos Sánchez", "Laura Torres",
+		"David Romero", "Sofía Hernández", "Pedro Díaz", "Elena Cruz", "Jorge Martínez",
 	}
 
-	// Procesamiento de datos
-	var sumaGeneral float64
-	var totalNotas int
+	// Inicializar datos con for tradicional
+	for i := 0; i < len(estudiantes); i++ {
+		estudiantes[i].Nombre = nombres[i]
+		for j := 0; j < 5; j++ {
+			estudiantes[i].Calificaciones[j] = float64((i+j)%10) + 1 // valores simples 1–10
+		}
+		estudiantes[i].Asistencia = 60 + i*4 // valores entre 60 y 100
+	}
 
-	for i := 0; i < numEstudiantes; i++ {
+	fmt.Println("=== SISTEMA DE CALIFICACIONES ===")
+
+	// Uso de for con range
+	for _, e := range estudiantes {
 		var suma float64
-		for _, nota := range calificaciones[i] {
+		for _, nota := range e.Calificaciones {
 			suma += nota
 		}
-		promedio := suma / float64(len(calificaciones[i]))
-		fmt.Printf("\nPromedio de %s: %.2f\n", nombres[i], promedio)
+		promedio := suma / float64(len(e.Calificaciones))
 
-		// If/Else para desempeño
-		if promedio >= 90 {
-			fmt.Println("Desempeño: Excelente")
-		} else if promedio >= 70 {
-			fmt.Println("Desempeño: Bueno")
+		// Mostrar calificaciones individuales
+		fmt.Printf("%s - Calificaciones: ", e.Nombre)
+		for _, nota := range e.Calificaciones {
+			fmt.Printf("%.1f ", nota)
+		}
+		fmt.Printf(" | Promedio: %.2f | Asistencia: %d%%\n", promedio, e.Asistencia)
+
+		// If/else anidados básicos
+		if promedio >= APROBADO {
+			if e.Asistencia >= ASISTENCIA {
+				if promedio >= 9 {
+					fmt.Println("Resultado: Excelente")
+				} else {
+					fmt.Println("Resultado: Aprobado")
+				}
+			} else {
+				fmt.Println("Resultado: Aprobado con baja asistencia")
+			}
 		} else {
-			fmt.Println("Desempeño: Necesita mejorar")
+			if e.Asistencia < ASISTENCIA {
+				fmt.Println("Resultado: Reprobado por notas y asistencia")
+			} else {
+				fmt.Println("Resultado: Reprobado")
+			}
 		}
 
-		// Switch para clasificación
+		// Switch sencillo
 		switch {
-		case promedio >= 90:
+		case promedio >= 9:
 			fmt.Println("Clasificación: A")
-		case promedio >= 80:
+		case promedio >= 8:
 			fmt.Println("Clasificación: B")
-		case promedio >= 70:
+		case promedio >= 7:
 			fmt.Println("Clasificación: C")
-		case promedio >= 60:
+		case promedio >= 6:
 			fmt.Println("Clasificación: D")
 		default:
 			fmt.Println("Clasificación: F")
 		}
-
-		// Acumular para promedio general
-		sumaGeneral += suma
-		totalNotas += len(calificaciones[i])
+		fmt.Println()
 	}
 
-	// Promedio general de todos los estudiantes
+	// Estadísticas usando for como while
+	var i int
+	var sumaGeneral float64
+	var mejor float64 = 0
+	var peor float64 = 10
+	var mejorNombre, peorNombre string
+	var aprobados int
+	totalNotas := 0
+
+	for i < len(estudiantes) { // estilo while
+		var suma float64
+		for _, nota := range estudiantes[i].Calificaciones {
+			suma += nota
+			if nota > mejor {
+				mejor = nota
+				mejorNombre = estudiantes[i].Nombre
+			}
+			if nota < peor {
+				peor = nota
+				peorNombre = estudiantes[i].Nombre
+			}
+		}
+		promedio := suma / 5
+		sumaGeneral += suma
+		totalNotas += 5
+		if promedio >= APROBADO && estudiantes[i].Asistencia >= ASISTENCIA {
+			aprobados++
+		}
+		i++ // incremento manual
+	}
+
 	promedioGeneral := sumaGeneral / float64(totalNotas)
-	fmt.Printf("\nPromedio general del grupo: %.2f\n", promedioGeneral)
+	porcentajeAprobados := float64(aprobados) / float64(len(estudiantes)) * 100
+
+	fmt.Println("=== ESTADÍSTICAS ===")
+	fmt.Printf("Promedio general: %.2f\n", promedioGeneral)
+	fmt.Printf("Mejor calificación: %.1f (%s)\n", mejor, mejorNombre)
+	fmt.Printf("Peor calificación: %.1f (%s)\n", peor, peorNombre)
+	fmt.Printf("Aprobados: %.1f%%\n", porcentajeAprobados)
 }
